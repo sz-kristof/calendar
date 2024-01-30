@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esports Event Calendar</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Esports Event Calendar Logo" class="logo">
+        </a>
+        <nav>
+            <ul>
+                <li><a href="/">Calendar</a></li>
+                <li><a href="#news">News</a></li>
+                <li><a href="/forums">Forums</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        </div>
+        <!-- Tegyük bele a Ligák Szűrő részébe -->
+        <div id="leaguesContainer"></div>
+
+        <section id="calendar-section">
+        <div id="league-filter-container"></div> <!-- League filter will be placed here -->
+                    <div id="filter-icon" class="filter-icon">🔍</div>
+        <div id="calendar-controls">
+            <!-- Month and year selectors will be generated here -->
+        </div>
+
+        <div id="league-filter-popup" class="league-filter-popup popup-window" style="display:none;">
+            <span class="close-btn" onclick="closeFilterPopup()">X</span>
+            <!-- League filters will be generated here -->
+        </div>
+        <div id="calendar-view">
+            <!-- Calendar will be dynamically generated here -->
+        </div>
+    </section>
+    </main>
+
+    <footer>
+        <p>Contact us at <a href="mailto:contact@esportscalendar.com">contact@esportscalendar.com</a></p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        <!-- Add this at the end of your body tag -->
+    <div id="popup-container" class="popup-container" style="display:none;"></div>
+    
+</body>
+</html>

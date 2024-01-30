@@ -1,0 +1,67 @@
+/* forums.css */
+
+.forum-container {
+    width: 85%;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Roboto', sans-serif;
+}
+
+.forum-category {
+    border-bottom: 2px solid #eee;
+    padding: 10px 0;
+}
+
+.forum-category h3 {
+    margin: 0;
+    color: #333;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-image: url('bg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1em 0;
+    font-family: 'Montserrat', sans-serif;
+}
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: 700;
+}
+
+footer {
+    background-color: #1c1c1c;
+    color: white;
+    text-align: center;
+    padding: 1em 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+/* ... További fórum-specifikus stílusok ... */

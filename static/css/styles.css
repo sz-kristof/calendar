@@ -1,0 +1,367 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-image: url('bg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+
+header {
+    display: flex;
+    align-items: center;
+    padding: 10px; /* Add some padding around the header */
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    margin-right: 20px; /* Adds some space between the logo and the nav */
+}
+
+.logo {
+    height: 80px; /* Adjust the size of the logo */
+    width: auto; /* Maintain aspect ratio */
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+nav ul li {
+    margin-right: 50px; /* Space between menu items */
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: 700;
+}
+
+footer {
+    background-color: #1c1c1c;
+    color: white;
+    text-align: center;
+    padding: 1em 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+
+
+#calendar-view {
+    max-width: 600px;
+    margin: auto;
+}
+
+#calendar-view table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#calendar-view th, #calendar-view td {
+    border: 1px solid #555;
+    padding: 20px; /* Increased padding for larger cells */
+    text-align: center;
+    font-size: 1.2em; /* Larger text */
+}
+
+#calendar-view th {
+    background-color: #333;
+    color: #fff;
+}
+
+#calendar-view td {
+    background-color: #222;
+    color: #fff;
+}
+
+/* Naptár vezérlői */
+
+#calendar-controls {
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #000; /* Sötét háttér a neon effektus kiemelésére */
+}
+
+#calendar-controls select, #calendar-controls button {
+    padding: 10px;
+    margin: 5px;
+    font-size: 1em;
+    border: none;
+    background-color: #2d2d2d; /* Sötét szín a modern megjelenéshez */
+    color: #00fffc; /* Türkiz szín a neon hatásért */
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 255, 252, 0.75), 0 0 10px rgba(0, 255, 252, 0.75); /* Neon fényhatás */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Sima átmenet a színek között */
+}
+
+#calendar-controls select:hover, #calendar-controls button:hover {
+    background-color: #00fffc; /* Türkiz háttér a hover hatásra */
+    color: #000; /* Sötét szöveg a kontraszt érdekében */
+    cursor: pointer;
+}
+
+/* "Show Calendar" gomb stílusa */
+#calendar-controls button {
+    font-weight: bold;
+    text-transform: uppercase; /* Nagybetűs szöveg a modern megjelenésért */
+    letter-spacing: 1px; /* Betűtávolság a könnyebb olvashatóságért */
+}
+
+
+.current-day {
+    background-color: #ff00ff; /* Neon Magenta */
+    color: #fff;
+    border-radius: 50%; /* Optional: to create a circle around the current day */
+    box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; /* Neon glow effect */
+    font-weight: bold;
+}
+
+.event-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: purple;
+    border-radius: 50%;
+    margin-top: 5px; /* Adjust as needed */
+}
+
+.popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup {
+    background: #282a36; /* Sötét háttér a popup-nak */
+    color: #f8f8f2; /* Világos szöveg */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.event-details {
+    background: #44475a; /* Kártya háttérszín */
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px; /* Kerekített sarkok */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Enyhe árnyék */
+}
+
+.event-details p {
+    margin: 10px 0;
+    font-size: 1em; /* Szöveg mérete */
+    line-height: 1.4; /* Sorok közötti távolság */
+}
+
+.popup button {
+    padding: 8px 15px;
+    background-color: #c41b1b; /* Világoszöld gomb */
+    color: #282a36; /* Sötét szöveg */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.popup button:hover {
+    background-color: #9b0909; /* Sötétebb zöld hover effekt */
+}
+
+.live-indicator {
+    color: red;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.league {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.league-icon {
+    width: 20px; /* Vagy a kívánt méret */
+    height: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+
+#league-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Középre igazítja a filtereket, ha kell */
+    gap: 10px; /* Távolság a filterek között */
+}
+
+#league-filters label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #fff; /* Szöveg színe */
+    font-size: 1em; /* Szöveg mérete */
+    transition: color 0.3s ease; /* Szöveg színének animációja */
+}
+
+#league-filters .league-checkbox {
+    display: none; /* A checkboxok továbbra is elrejtve maradnak */
+}
+
+#league-filters .slider {
+    position: relative;
+    width: 60px; /* Kapcsoló szélessége */
+    height: 34px; /* Kapcsoló magassága */
+    background-color: #2d2d2d; /* Sötét háttér */
+    border-radius: 34px; /* Kerekített sarkok */
+    margin-right: 10px; /* Távolság a kapcsoló és a szöveg között */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Háttérszín animációja */
+}
+
+#league-filters .slider::before {
+    content: '';
+    position: absolute;
+    height: 26px; /* Gömb magassága */
+    width: 26px; /* Gömb szélessége */
+    left: 4px;
+    bottom: 4px;
+    background-color: #fff; /* Gömb alapszíne */
+    border-radius: 50%; /* Gömb kerekítése */
+    transition: transform 0.3s ease; /* Gömb mozgatásának animációja */
+}
+
+#league-filters .league-checkbox:checked + .slider::before {
+    transform: translateX(26px); /* Gömb elmozdítása aktivált állapotban */
+    background-color: #00fffc; /* Aktív állapot színe */
+}
+
+#league-filters .league-checkbox:checked + .slider {
+    background-color: #ff00ff; /* Háttérszín aktivált állapotban */
+}
+
+#league-filters label:hover .slider::before {
+    background-color: #ddd; /* Gömb színe hover állapotban */
+    box-shadow: 0 0 8px #00fffc; /* Neon gömb árnyékolása */
+}
+
+#league-filters label:hover {
+    color: #00fffc; /* Szöveg színe hover állapotban */
+}
+
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; /* Állítsd be a kívánt magasságot */
+}
+
+.spinner {
+    border: 5px solid #f3f3f3; /* Világos szín */
+    border-top: 5px solid #3498db; /* Sötét szín */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Existing CSS styles */
+
+.filter-icon {
+    cursor: pointer;
+    margin-left: 1150px; /* Adjust as needed */
+    /* Remove position: absolute and right: 500x */
+}
+
+.league-filter-popup {
+    position: fixed;
+    top: 50px; /* Szükség szerint állítsd be a pozíciót */
+    right: 50px;
+    background-color: #282a36; /* Sötét háttér a popup-nak */
+    color: #f8f8f2; /* Világos szöveg */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto; /* Gördíthető, ha a tartalom túl hosszú */
+    z-index: 100; /* Biztosítja, hogy a popup az oldal többi elemén legyen */
+}
+
+#league-filters {
+    display: flex;
+    flex-direction: column; /* Egymás alá rendezés */
+    gap: 10px; /* Távolság a filterek között */
+}
+
+#league-filters label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #fff; /* Szöveg színe */
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+/* További CSS szabályok... */
+
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10; /* Biztosítja, hogy az overlay az összes többi elem felett legyen */
+}
+
+.popup,
+.league-filter-popup {
+    z-index: 11; /* A popupoknak magasabb z-index értéket adunk, mint az overlay-nek */
+    /* További stílusok a popupokhoz... */
+}
+
+
+
+
+
+
+
+
+
+
