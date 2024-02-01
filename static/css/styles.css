@@ -357,6 +357,45 @@ footer {
 }
 
 
+.team-logo {
+    height: 30px; /* Adjust as necessary */
+}
+
+.match-details {
+    display: flex;
+}
+
+.match-details p {
+    margin: 0 10px; /* Spacing between logos and text */
+}
+
+.team-players {
+    display: flex; /* Aligns child elements (player profiles) in a row */
+    flex-wrap: wrap; /* Allows wrapping onto the next line if space runs out */
+    justify-content: center; /* Centers the profiles in the container */
+    gap: 10px; /* Adds some space between profiles */
+}
+
+.player-profile {
+    display: flex; /* Makes it a flex container */
+    flex-direction: column; /* Stacks items vertically */
+    align-items: center; /* Aligns items (image and name) in the center */
+    text-align: center; 
+    margin-bottom: 10px;
+}
+
+.player-image {
+    width: 50px; 
+    height: auto;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.player-name {
+    display: block;
+}
+
+
 
 
 

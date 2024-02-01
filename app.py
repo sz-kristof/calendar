@@ -1,10 +1,22 @@
 from flask import Flask, jsonify, request, render_template
 from datetime import datetime, timedelta
 import requests
+from flask_caching import Cache
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+# Configuration for Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = 'True'
+app.config['MAIL_USE_SSL'] = 'False'
+app.config['MAIL_USERNAME'] = 'chrispacso5@gmail.com'
+app.config['MAIL_PASSWORD'] = 'hihi'
 
 @app.route('/api/pandascore/tournaments/upcoming', methods=['GET'])
+@cache.cached(timeout=50, query_string=True)  # Cache this view for 50 seconds
 def pandascore_proxy():
     pandascore_api_key = '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
     headers = {"accept": "application/json"}
@@ -57,6 +69,78 @@ def get_leagues():
     return jsonify(all_leagues)
 
 
+@app.route('/api/teams/<int:team_id>', methods=['GET'])
+def get_team_details(team_id):
+    headers = {
+        'Authorization': '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
+    }
+    try:
+        response = requests.get(
+            f'https://api.pandascore.co/teams/{team_id}',
+            headers=headers
+        )
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch team details'}), response.status_code
+
+        team_details = response.json()
+        return jsonify(team_details)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tournaments/<int:tournament_id>', methods=['GET'])
+def get_tournament_details(tournament_id):
+    headers = {
+        'Authorization': '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
+    }
+    try:
+        response = requests.get(
+            f'https://api.pandascore.co/tournaments/{tournament_id}',
+            headers=headers
+        )
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch team details'}), response.status_code
+
+        team_details = response.json()
+        return jsonify(team_details)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/lol/matches/<int:match_id>', methods=['GET'])
+def get_match_details(match_id):
+    headers = {
+        'Authorization': '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
+    }
+    try:
+        response = requests.get(
+            f'https://api.pandascore.co/lol/matches/{match_id}',
+            headers=headers
+        )
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch team details'}), response.status_code
+
+        team_details = response.json()
+        return jsonify(team_details)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/players/<int:player_id>/matches', methods=['GET'])
+def get_matches_for_players(player_id):
+    headers = {
+        'Authorization': '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
+    }
+    try:
+        response = requests.get(
+            f'https://api.pandascore.co/players/{player_id}/matches',
+            headers=headers
+        )
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch team details'}), response.status_code
+
+        team_details = response.json()
+        return jsonify(team_details)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/')
 def index():
@@ -64,6 +148,31 @@ def index():
 @app.route('/forums')
 def forums():
     return render_template('forums.html')
+
+mail = Mail(app)
+
+@app.route('/feedback')
+def feedback():
+    return render_template('feedback.html')
+
+@app.route('/send_feedback', methods=['POST'])
+def send_feedback():
+    name = request.form['name']
+    email = request.form['email']
+    message = request.form['message']
+
+    msg = Message("Feedback from {}".format(name),
+                  recipients=['chrispacso5@gmail.com'])  # Enter the target email here
+    msg.body = f"From: {name}\nEmail: {email}\n\n{message}"
+    mail.send(msg)
+
+    flash('Feedback sent successfully!')
+    return redirect(url_for('index'))  # Redirect to your index page or a thank you page
+
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

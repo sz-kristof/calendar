@@ -156,8 +156,12 @@ function generateMonthYearSelectors() {
 
     let buttonHtml = `<button onclick="updateCalendar()">Show Calendar</button>`;
 
-    document.getElementById('calendar-controls').innerHTML = monthHtml + yearHtml + buttonHtml;
+    // Adding a filter icon (represented by a Unicode character)
+    let filterIconHtml = `<button onclick="togglePopup('league-filter-popup')" style="margin-left: 10px; cursor: pointer;">&#x1F50D;</button>`;
+
+    document.getElementById('calendar-controls').innerHTML = monthHtml + yearHtml + buttonHtml + filterIconHtml;
 }
+
 
 async function fetchEvents() {
     showLoadingIndicator();
@@ -213,6 +217,33 @@ async function fetchLeagues() {
     }
 }
 
+async function fetchTeamDetails(teamId) {
+    try {
+        const response = await fetch(`/api/teams/${teamId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching team details:', error);
+        return null;
+    }
+}
+
+async function fetchTournamentDetails(tournamentId) {
+    try {
+        const response = await fetch(`/api/tournaments/${tournamentId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching team details:', error);
+        return null;
+    }
+}
+
+
 function generateLeagueFilters() {
     const uniqueLeagues = Array.from(new Set(globalEvents.map(event => event.league.name)));
     let leagueFilterHtml = '<div id="league-filters">';
@@ -247,7 +278,7 @@ function placeLeagueFilter(leagues) {
 
     leagues.forEach(league => {
         // Ellenőrzi, hogy a liga az LEC-e, és ha igen, akkor kijelöli a checkboxot
-        const isChecked = league.name === 'LEC' ? 'checked' : '';
+        const isChecked = '';
 
         const leagueHtml = `
             <label class="league-label">
@@ -269,18 +300,6 @@ function placeLeagueFilter(leagues) {
 }
 
 
-
-
-
-// Toggle pop-up display when filter icon is clicked
-document.getElementById('filter-icon').addEventListener('click', function() {
-    // Ha a kalendáriumi popup nyitva van, zárja be
-    if (document.getElementById('popup-container').style.display === 'flex') {
-        closePopup();
-    }
-    // Nyissa meg/zárja be a liga filter popupot
-    togglePopup('league-filter-popup');
-});
 
 function togglePopup(popupId) {
     const popup = document.getElementById(popupId);
@@ -335,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-function showEventsForDay(day, month, year) {
+async function showEventsForDay(day, month, year) {
     const eventsForDay = filterEventsBySelectedLeagues(globalEvents).filter(event => {
         const eventDate = new Date(event.scheduled_at);
         return eventDate.getDate() === day &&
@@ -353,28 +372,69 @@ function showEventsForDay(day, month, year) {
     if (eventsForDay.length === 0) {
         popupHtml += `<p>No events scheduled for this day.</p>`;
     } else {
-        eventsForDay.forEach(event => {
+        for (const event of eventsForDay) {
             const eventTime = new Date(event.scheduled_at);
             const opponents = event.opponents.map(opp => opp.opponent.name).join(' vs ');
+            const opponent_left_logo = event.opponents[0].opponent.image_url;
+            const opponent_right_logo = event.opponents[1].opponent.image_url;
             const leagueName = event.league.name;
+            const leagueUrl = event.league.url;
+            const teamLeftId = event.opponents[0].opponent.id;
+            const teamRightId = event.opponents[1].opponent.id;
+            const teamLeftDetails = await fetchTeamDetails(teamLeftId);
+            const teamRightDetails = fetchTeamDetails(teamRightId);
+            
+
+
+            const playersLeft = teamLeftDetails && teamLeftDetails.players
+            ? `<div class="team-players">` + 
+              teamLeftDetails.players
+                .filter(player => player.active)
+                .map(player => 
+                    `<div class="player-profile">
+                        <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
+                        <span class="player-name">${player.name}</span>
+                    </div>`
+                ).join('') + `</div>`
+            : 'No active players';
+
+        const playersRight = teamRightDetails && teamRightDetails.players
+            ? `<div class="team-players">` + 
+              teamRightDetails.players
+                .filter(player => player.active)
+                .map(player => 
+                    `<div class="player-profile">
+                        <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
+                        <span class="player-name">${player.name}</span>
+                    </div>`
+                ).join('') + `</div>`
+            : 'No active players';
+            
+
             let broadcastingLinks = event.streams_list.map(stream => {
                 return stream.raw_url ? `<a href="${stream.raw_url}" target="_blank">${stream.language.toUpperCase()}</a>` : '';
             }).filter(link => link).join(' | ');
-
+        
             if (!broadcastingLinks) broadcastingLinks = 'No broadcasting link available';
-
-            // Check if the match is ongoing
+        
             let liveIndicator = event.status === 'running' ? '<span class="live-indicator">LIVE</span>' : '';
-
+        
             popupHtml += `
                 <div class="event-details">
                     <p>${liveIndicator}<strong>Time:</strong> ${eventTime.toLocaleTimeString()}</p>
-                    <p><strong>Match:</strong> ${opponents}</p>
-                    <p><strong>League:</strong> ${leagueName}</p>
+                    <div class="match-details">
+                    <p><strong>Match:</strong> 
+                        <img src="${opponent_left_logo}" alt="Left Team Logo" class="team-logo">
+                        ${opponents}</p>
+                        <img src="${opponent_right_logo}" alt="Right Team Logo" class="team-logo">
+                    </div>
+                    <p>${playersLeft}</p>
+                    <p><strong>League:</strong> <a href="${leagueUrl}" target="_blank">${leagueName}</a></p>
                     <p><strong>Broadcast:</strong> ${broadcastingLinks}</p>
                 </div>
             `;
-        });
+        };
+        
     }
 
     popupHtml += '<button onclick="closePopup()">Close</button>';
