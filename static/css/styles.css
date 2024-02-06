@@ -46,15 +46,53 @@ nav a {
     font-weight: 700;
 }
 
+html, body {
+    height: 100%; /* Ensure the html and body are at least the height of the viewport */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Stack html children elements vertically */
+}
+
+main {
+    flex: 1; /* This allows the main content to expand and fill the available space */
+    /* If you have a header or other elements above main, you may need to adjust this value */
+}
+
 footer {
     background-color: #1c1c1c;
     color: white;
     text-align: center;
     padding: 1em 0;
-    position: absolute;
-    bottom: 0;
+    position: relative; /* Changed to relative */
     width: 100%;
+    clear: both;
 }
+
+.footer-content {
+    position: relative; /* Positioned relative to footer */
+    padding: 0;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-content p:not(.changelog-link) {
+    display: inline-block;
+    /* Ensures that the paragraph is centered in the footer */
+    margin: 0 auto;
+}
+
+.changelog-link {
+    position: fixed; /* Absolute positioning relative to footer */
+    right: 0; /* Align to the right */
+    bottom: 0em; /* Aligned to the bottom */
+    margin-right: 20px; /* Space from the right edge */
+    color: white;
+}
+
+
+
+
 
 
 
@@ -394,6 +432,61 @@ footer {
 .player-name {
     display: block;
 }
+
+.popup-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 20px;
+    color: white; /* Ensure the 'X' is visible against the popup background */
+}
+
+#planned-changes,
+#latest-changes {
+    margin: 2em auto;
+    padding: 1em;
+    max-width: 800px; /* Adjust width as necessary */
+}
+
+#planned-changes h2,
+#latest-changes h2 {
+    text-align: center;
+    color: #00fffc; /* Style header color as you like */
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #333; /* Style horizontal line color as you like */
+    margin: 2em 0;
+}
+
+ul {
+    list-style-type: none; /* Removes default list styling */
+    padding: 0;
+}
+
+.changelog {
+    list-style-type: none; /* Removes default list styling */
+    padding: 0;
+}
+
+.changelog li {
+    margin: 0.5em 0;
+    background: #282a36; /* Slightly different background for list items */
+    color: #f8f8f2; /* Adjust text color as necessary */
+    padding: 0.5em;
+    border-radius: 5px; /* Optional: rounds corners of list items */
+}
+
+/* Ensure the changelog styles do not affect other lists */
+#planned-changes .changelog,
+#latest-changes .changelog {
+    /* Changelog specific styles */
+}
+
 
 
 

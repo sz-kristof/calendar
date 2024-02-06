@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esports Event Calendar - Changelog</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Esports Event Calendar Logo" class="logo">
+        </a>
+        <nav>
+            <ul>
+                <li><a href="/">Calendar</a></li>
+                 <!--<li><a href="#news">News</a></li>-->
+                 <!--<li><a href="/forums">Forums</a></li>-->
+                 <!--<li><a href="/feedback">Send Feedback</a></li>-->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="planned-changes">
+            <h2>Planned Changes</h2>
+            <hr>
+            <ul class="changelog">
+                <li>Add News site</li>
+                <li>Add Forum site</li>
+                <li>Add other esport title data</li>
+            </ul>
+        </section>
+        
+        <section id="latest-changes">
+            <h2>Latest Changes</h2>
+            <hr>
+            <ul class="changelog">
+                <li>03, February - Changelog link and site added</li>
+                <li>02, February - Started to add links to team logos. Now you can click on some of the
+                    team logos and it will redirect you to their website.
+                </li>
+            </ul>
+        </section>
+        
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>Contact us at <a href="mailto:contact@esportscalendar.com">contact@esportscalendar.com</a></p>
+            <p class="changelog-link"><a href="/changelog">Changelog</a></p>
+        </div>
+    </footer>
+
+    <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

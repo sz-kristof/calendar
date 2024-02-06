@@ -17,7 +17,7 @@ app.config['MAIL_PASSWORD'] = 'hihi'
 
 @app.route('/api/pandascore/tournaments/upcoming', methods=['GET'])
 @cache.cached(timeout=50, query_string=True)  # Cache this view for 50 seconds
-def pandascore_proxy():
+def get_upcoming_lol_matches():
     pandascore_api_key = '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
     headers = {"accept": "application/json"}
 
@@ -30,9 +30,23 @@ def pandascore_proxy():
 
     return jsonify(all_matches)
 
+@app.route('/api/pandascore/tournaments/past', methods=['GET'])
+@cache.cached(timeout=50, query_string=True)  # Cache this view for 50 seconds
+def get_past_lol_matches():
+    pandascore_api_key = '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
+    headers = {"accept": "application/json"}
+
+    all_matches = []
+    for page in range(1, 10):  # Pages 1 through 5
+        matches_url = f"https://api.pandascore.co/lol/matches/past/?sort=&page={page}&per_page=100&token={pandascore_api_key}"
+        response = requests.get(matches_url, headers=headers)
+        matches = response.json()
+        all_matches.extend(matches)  # Add matches from this page to the list
+
+    return jsonify(all_matches)
 
 @app.route('/api/ongoing-events', methods=['GET'])
-def get_ongoing_events():
+def get_ongoing_lol_matches():
     headers = {
         'Authorization': '4VOCS4jpPdKfU0gDukE2ritKiYnhHtZgJAdJKdUKyii-FfPBOU8'
     }
@@ -145,6 +159,11 @@ def get_matches_for_players(player_id):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/changelog')
+def changelog():
+    return render_template('changelog.html')
+
 @app.route('/forums')
 def forums():
     return render_template('forums.html')
@@ -170,9 +189,29 @@ def send_feedback():
     return redirect(url_for('index'))  # Redirect to your index page or a thank you page
 
 
+team_data = {
+    "FUR": {"name": "FURIA Esports", "logo": "https://cdn.pandascore.co/images/team/image/126688/220px_furia_uppercutlogo_square.png", "info": "Some info about Team A"},
+    "TeamB": {"name": "Team B", "logo": "logo-teamb.png", "info": "Some info about Team B"},
+    # Add more teams as needed
+}
 
+@app.route("/teams/<team_name>")
+def team_page(team_name):
+    team_info = team_data.get(team_name)
+    if team_info:
+        return render_template('team_page.html', team=team_info)
+    else:
+        # Handle the error (e.g., render a 404 not found template)
+        return "Team not found", 404
 
-
+@app.route('/api/update_teams', methods=['POST'])
+def update_teams():
+    global team_data
+    data = request.json  # This should contain the team info
+    for acronym, info in data.items():
+        if acronym not in team_data:
+            team_data[acronym] = info
+    return jsonify({"message": "Teams updated successfully"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

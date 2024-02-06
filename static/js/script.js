@@ -1,4 +1,6 @@
 
+import teamWebpages from './teamwebpages.js';
+
 let globalEvents = [];
 let selectedLeagues = new Set();
 
@@ -75,11 +77,12 @@ async function createCalendar(month, year) {
     // Fetch events and add them to the calendar
     const upcomingEvents = await fetchEvents(month, year);
     const ongoingEvents = await fetchOngoingEvents();
+    const pastEvents = await fetchPastEvents(month, year);
 
     console.log(ongoingEvents)
 
     // Combine the events
-    globalEvents = [...upcomingEvents, ...ongoingEvents];
+    globalEvents = [...upcomingEvents, ...ongoingEvents, ...pastEvents];
     const filteredEvents = filterEventsBySelectedLeagues(globalEvents);
     if (filteredEvents && filteredEvents.length > 0) {
         filteredEvents.forEach(event => {
@@ -140,42 +143,81 @@ function attachLeagueFilterEventListeners() {
 
 
 // Function to generate month and year dropdowns
+// Function to generate month and year dropdowns
 function generateMonthYearSelectors() {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
     let monthHtml = `<select id="month-select">`;
     for (let i = 0; i < monthNames.length; i++) {
-        monthHtml += `<option value="${i}">${monthNames[i]}</option>`;
+        // Set the current month as selected
+        let selected = (i === currentMonth) ? 'selected' : '';
+        monthHtml += `<option value="${i}" ${selected}>${monthNames[i]}</option>`;
     }
     monthHtml += `</select>`;
 
     let yearHtml = `<select id="year-select">`;
-    for (let i = new Date().getFullYear(); i >= 2020; i--) {
-        yearHtml += `<option value="${i}">${i}</option>`;
+    for (let i = currentYear; i >= 2020; i--) {
+        // Set the current year as selected
+        let selected = (i === currentYear) ? 'selected' : '';
+        yearHtml += `<option value="${i}" ${selected}>${i}</option>`;
     }
     yearHtml += `</select>`;
 
-    let buttonHtml = `<button onclick="updateCalendar()">Show Calendar</button>`;
+    let buttonHtml = `<button id="show-calendar-btn">Show Calendar</button>`;
 
     // Adding a filter icon (represented by a Unicode character)
-    let filterIconHtml = `<button onclick="togglePopup('league-filter-popup')" style="margin-left: 10px; cursor: pointer;">&#x1F50D;</button>`;
+    let filterIconHtml = `<button data-toggle-popup="league-filter-popup" style="margin-left: 10px; cursor: pointer;">&#x1F50D;</button>`;
 
     document.getElementById('calendar-controls').innerHTML = monthHtml + yearHtml + buttonHtml + filterIconHtml;
+    
+    // Add event listeners for the newly added elements
+    document.getElementById('show-calendar-btn').addEventListener('click', updateCalendar);
+    document.querySelector('[data-toggle-popup="league-filter-popup"]').addEventListener('click', function() {
+        togglePopup(this.dataset.togglePopup);
+    });
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', function(event) {
+        // Check if the clicked element or any of its parents have the 'data-toggle-popup' attribute
+        let targetElement = event.target;
+        while (targetElement != null) {
+            if (targetElement.matches("[data-toggle-popup]")) {
+                const popupId = targetElement.getAttribute('data-toggle-popup');
+                togglePopup(popupId);
+                return; // Stop the loop and exit the function
+            }
+            targetElement = targetElement.parentElement;
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const showCalendarButton = document.getElementById('show-calendar-btn');
+    if (showCalendarButton) {
+        showCalendarButton.addEventListener('click', updateCalendar);
+    }
+});
+
 
 
 async function fetchEvents() {
     showLoadingIndicator();
     try {
-        const response = await fetch(`/api/pandascore/tournaments/upcoming`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-            console.error('A válasz nem tömb:', data);
-            return [];
-        }
-        return data;
+        const events = localStorage.getItem('upcomingevents');
+  if (events) {
+    return JSON.parse(events); // Return cached data
+  } else {
+    // If not in cache, fetch from the API and then cache it
+    const response = await fetch('/api/pandascore/tournaments/upcoming');
+    const data = await response.json();
+    localStorage.setItem('upcomingevents', JSON.stringify(data));
+    return data;
+  }
     } catch (error) {
         console.error('Hiba történt az események lekérésekor:', error);
         return []; // Visszaad egy üres tömböt, ha hiba történt
@@ -196,6 +238,24 @@ async function fetchOngoingEvents() {
     } catch (error) {
         console.error('Hiba történt a folyamatban lévő események lekérésekor:', error);
         return []; // Visszaad egy üres tömböt, ha hiba történt
+    }
+}
+
+async function fetchPastEvents() {
+    showLoadingIndicator();
+    try {
+        const response = await fetch(`/api/pandascore/tournaments/past`);
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+            console.error('Válasz nem tömb: ', data);
+            return [];
+        }
+        return data;
+    } catch (error) {
+        console.error('Hiba történt a folyamatban lévő események lekérésekor:', error);
+        return []; // Visszaad egy üres tömböt, ha hiba történt
+    } finally {
+        hideLoadingIndicator();
     }
 }
 
@@ -271,7 +331,8 @@ const primaryLeagues = ['LPL', 'LEC', 'LCS', 'LCK', 'CBLOL', 'LLA', 'VCS', 'PCS'
 const secondaryLeagues = ['LFL', 'Arabian League', 'LIT', 'TCL', 'EBL', 'Elite Series Benelux Masters', 'EMEA Masters', 'North American Challengers League', 'LDL'];
 
 function placeLeagueFilter(leagues) {
-    let leagueFilterHtml = '<div class="close-btn" onclick="closeFilterPopup()">X</div>'; // Bezáró gomb hozzáadása
+    let leagueFilterHtml = '<div class="close-btn close-filter-popup-btn">X</div>'; // Bezáró gomb hozzáadása
+
 
     let primaryLeagueHtml = '<h3>Tier 1 Leagues</h3><hr>';
     let secondaryLeagueHtml = '<h3>Tier 2 Leagues</h3><hr>';
@@ -299,6 +360,13 @@ function placeLeagueFilter(leagues) {
     attachLeagueFilterEventListeners();
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', function(event) {
+        if (event.target.matches('.close-filter-popup-btn')) {
+            closeFilterPopup();
+        }
+    });
+});
 
 
 function togglePopup(popupId) {
@@ -341,16 +409,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // További kódok...
 });
 
-// Fetch leagues and populate filters on page load
-document.addEventListener('DOMContentLoaded', function() {
-    fetchLeagues();
-});
 
-// Call fetchLeagues on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    fetchLeagues();
-    // Existing code
-});
+// Function to update team data on the server
+async function updateTeamDataOnServer(teamData) {
+    try {
+        const response = await fetch('/api/update_teams', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(teamData),
+        });
+        if (response.ok) {
+            console.log('Team data updated on server');
+        } else {
+            console.error('Failed to update team data on server');
+        }
+    } catch (error) {
+        console.error('Error updating team data:', error);
+    }
+}
+
+// Example usage:
+// Assuming `teamData` is an object containing the team info you want to update
+// updateTeamDataOnServer(teamData);
+
 
 
 
@@ -368,47 +451,65 @@ async function showEventsForDay(day, month, year) {
         return 0;
     });
 
-    let popupHtml = '<div class="popup">';
+    let popupHtml = `
+<div class="popup">
+    <div class="close-popup-btn">X</div> <!-- Close button at the top -->
+    <!-- Your popup content goes here -->`;
+
+    let newTeamData = {};
     if (eventsForDay.length === 0) {
         popupHtml += `<p>No events scheduled for this day.</p>`;
     } else {
         for (const event of eventsForDay) {
             const eventTime = new Date(event.scheduled_at);
             const opponents = event.opponents.map(opp => opp.opponent.name).join(' vs ');
+            const opponent_left_acronym = event.opponents[0].opponent.acronym;
+            const opponent_right_acronym = event.opponents[1].opponent.acronym;
+            const opponent_left_name = event.opponents[0].opponent.name;
+            const opponent_right_name = event.opponents[1].opponent.name;
             const opponent_left_logo = event.opponents[0].opponent.image_url;
             const opponent_right_logo = event.opponents[1].opponent.image_url;
             const leagueName = event.league.name;
             const leagueUrl = event.league.url;
-            const teamLeftId = event.opponents[0].opponent.id;
-            const teamRightId = event.opponents[1].opponent.id;
-            const teamLeftDetails = await fetchTeamDetails(teamLeftId);
-            const teamRightDetails = fetchTeamDetails(teamRightId);
-            
+            const teamLeftScore = event.status === 'finished' ? event.results[0].score : '';
+            const teamRightScore = event.status === 'finished' ? event.results[1].score : '';
+            //const teamLeftDetails = await fetchTeamDetails(teamLeftId);
+            //const teamRightDetails = fetchTeamDetails(teamRightId);
+            newTeamData[opponent_left_acronym] = {
+                name: opponent_left_name,
+                logo: opponent_left_logo,
+                info: '' // Add additional info as needed
+            };
+            newTeamData[opponent_right_acronym] = {
+                name: opponent_right_name,
+                logo: opponent_right_logo,
+                info: '' // Add additional info as needed
+            };
+            console.log(opponent_left_name)
 
-
-            const playersLeft = teamLeftDetails && teamLeftDetails.players
-            ? `<div class="team-players">` + 
-              teamLeftDetails.players
-                .filter(player => player.active)
-                .map(player => 
-                    `<div class="player-profile">
-                        <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
-                        <span class="player-name">${player.name}</span>
-                    </div>`
-                ).join('') + `</div>`
-            : 'No active players';
-
-        const playersRight = teamRightDetails && teamRightDetails.players
-            ? `<div class="team-players">` + 
-              teamRightDetails.players
-                .filter(player => player.active)
-                .map(player => 
-                    `<div class="player-profile">
-                        <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
-                        <span class="player-name">${player.name}</span>
-                    </div>`
-                ).join('') + `</div>`
-            : 'No active players';
+        //    const playersLeft = teamLeftDetails && teamLeftDetails.players
+        //    ? `<div class="team-players">` + 
+        //      teamLeftDetails.players
+        //        .filter(player => player.active)
+        //        .map(player => 
+        //            `<div class="player-profile">
+        //                <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
+        //                <span class="player-name">${player.name}</span>
+        //            </div>`
+        //        ).join('') + `</div>`
+        //    : 'No active players';
+//
+        //    const playersRight = teamRightDetails && teamRightDetails.players
+        //    ? `<div class="team-players">` + 
+        //      teamRightDetails.players
+        //        .filter(player => player.active)
+        //        .map(player => 
+        //            `<div class="player-profile">
+        //                <img src="${player.image_url || 'default-image-url.jpg'}" alt="${player.name}" class="player-image">
+        //                <span class="player-name">${player.name}</span>
+        //            </div>`
+        //        ).join('') + `</div>`
+        //    : 'No active players';
             
 
             let broadcastingLinks = event.streams_list.map(stream => {
@@ -420,24 +521,25 @@ async function showEventsForDay(day, month, year) {
             let liveIndicator = event.status === 'running' ? '<span class="live-indicator">LIVE</span>' : '';
         
             popupHtml += `
-                <div class="event-details">
-                    <p>${liveIndicator}<strong>Time:</strong> ${eventTime.toLocaleTimeString()}</p>
-                    <div class="match-details">
-                    <p><strong>Match:</strong> 
-                        <img src="${opponent_left_logo}" alt="Left Team Logo" class="team-logo">
-                        ${opponents}</p>
-                        <img src="${opponent_right_logo}" alt="Right Team Logo" class="team-logo">
-                    </div>
-                    <p>${playersLeft}</p>
-                    <p><strong>League:</strong> <a href="${leagueUrl}" target="_blank">${leagueName}</a></p>
-                    <p><strong>Broadcast:</strong> ${broadcastingLinks}</p>
-                </div>
-            `;
-        };
+    <div class="event-details">
+        <p>${liveIndicator}<strong>Time:</strong> ${eventTime.toLocaleTimeString()}</p>
+        <div class="match-details">
+        <p><strong>Match:</strong> 
+            <a href="/teams/${opponent_left_acronym}" target="_blank"><img src="${opponent_left_logo}" alt="Left Team Logo" class="team-logo"></a>
+            ${opponent_left_name} ${teamLeftScore} vs ${teamRightScore} ${opponent_right_name}</p>
+            <a href="/teams/${opponent_right_acronym}" target="_blank"><img src="${opponent_right_logo}" alt="Left Team Logo" class="team-logo"></a>
+        </p>
+        </div>
+        <p><strong>League:</strong> <a href="${leagueUrl}" target="_blank">${leagueName}</a></p>
+        <p><strong>Broadcast:</strong> ${broadcastingLinks}</p>
+    </div>
+`;
         
+        };
+        updateTeamDataOnServer(newTeamData);
     }
 
-    popupHtml += '<button onclick="closePopup()">Close</button>';
+    popupHtml += '<button class="close-popup-btn">Close</button>';
     popupHtml += '</div>';
 
     const popupContainer = document.getElementById('popup-container');
@@ -445,6 +547,16 @@ async function showEventsForDay(day, month, year) {
     popupContainer.style.display = 'flex';
 }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Assuming 'popup-container' is the parent container where popupHtml gets added
+    document.getElementById('popup-container').addEventListener('click', function(event) {
+        // Check if the clicked element has the 'close-popup-btn' class
+        if (event.target && event.target.matches('.close-popup-btn')) {
+            closePopup();
+        }
+    });
+});
 
 function showLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'flex';
@@ -468,12 +580,6 @@ function closeFilterPopup() {
     overlay.style.display = 'none'; // Az overlay elrejtése
 }
 
-// Az X gomb eseménykezelőjének hozzáadása
-document.addEventListener('DOMContentLoaded', () => {
-    const closeButton = document.querySelector('.league-filter-popup .close-btn');
-    closeButton.addEventListener('click', closeFilterPopup);
-    // További kódok...
-});
 
 // Call the function to create the selectors
 generateMonthYearSelectors();
